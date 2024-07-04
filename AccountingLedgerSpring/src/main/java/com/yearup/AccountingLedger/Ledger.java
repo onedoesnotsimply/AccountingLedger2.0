@@ -1,5 +1,10 @@
 package com.yearup.AccountingLedger;
 
+import com.yearup.AccountingLedger.data.TransactionDao;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
+
 import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -8,13 +13,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Scanner;
 
-public class Ledger {
+@Component
+public class Ledger implements CommandLineRunner {
+    @Autowired
+    private TransactionDao transactionDao;
 
-    /*
-    Ledger allows users to keep record of financial transactions by
-    Allowing them to record deposits and payments and view a ledger of reports,
-    including all, monthly, yearly and a search by vendor option
-     */
 
 
     // Create a scanner object for user input
@@ -28,6 +31,12 @@ public class Ledger {
     // Create a static ArrayList for sorting
     static ArrayList<String> entries = new ArrayList<>();
 
+    @Override
+    public void run(String... args) throws Exception {
+        System.out.println("Welcome to Ledger");
+        //homeScreen();
+        System.out.println(transactionDao.getAllEntries());
+    }
 
     public static void main(String[] args) {
         System.out.println("Welcome to Ledger");
