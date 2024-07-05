@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -97,12 +98,14 @@ public class Ledger implements CommandLineRunner {
     }
 
     public void viewReports() {
-        System.out.println("1) Month To Date");
-        System.out.println("2) Previous Month");
-        System.out.println("3) Year To Date");
-        System.out.println("4) Previous Year");
-        System.out.println("5) Search by Vendor");
-        System.out.println("6) Back");
+        System.out.println("""
+            1) Month To Date
+            2) Previous Month
+            3) Year To Date
+            4) Previous Year
+            5) Search by Vendor
+            6) Custom Search
+            7) Back""");
 
         try {
             int choice = scanner.nextInt();
@@ -128,6 +131,9 @@ public class Ledger implements CommandLineRunner {
                 getByVendor();
                 viewReports();
             } else if (choice==6) {
+                customSearch();
+                viewReports();
+            } else if (choice==7) {
                 ledgerScreen();
             } else {
                 System.out.println("Invalid Input");
@@ -197,6 +203,24 @@ public class Ledger implements CommandLineRunner {
         System.out.println("Enter the name of the vendor");
         String vendorName = scanner.nextLine();
         List<Transaction> transactions = transactionDao.searchByVendor(vendorName);
+        transactions.forEach(System.out::println);
+    }
+
+    public void customSearch() {
+        //List<String> searchParameters = new ArrayList<>();
+        System.out.println("Search parameters are optional - leave empty if not applicable");
+        System.out.print("Enter start date (yyyy-mm-DD) : ");
+        String startDate = scanner.nextLine();
+        System.out.print("Enter end date (yyyy-mm-DD) : ");
+        String endDate = scanner.nextLine();
+        System.out.print("Enter transaction description : ");
+        String description = scanner.nextLine();
+        System.out.print("Enter the name of the vendor : ");
+        String vendor = scanner.nextLine();
+        System.out.print("Enter the amount : ");
+        String amount = scanner.nextLine();
+
+        List<Transaction> transactions = transactionDao.customSearch(startDate,endDate,description,vendor,amount);
         transactions.forEach(System.out::println);
     }
 }

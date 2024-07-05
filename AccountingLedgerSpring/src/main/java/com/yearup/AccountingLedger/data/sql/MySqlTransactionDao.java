@@ -218,6 +218,62 @@ public class MySqlTransactionDao implements TransactionDao {
         return transactions;
     }
 
+    @Override
+    public List<Transaction> customSearch(String startDate, String endDate, String description, String vendor, String amount) {
+        List<Transaction> transactions = new ArrayList<>();
+        StringBuilder query = new StringBuilder("SELECT * FROM transactions WHERE 1=1");
+        int parameterIndex = 0;
+
+        if ((!startDate.isEmpty()) && (!endDate.isEmpty())){
+            query.append(" AND DATE(date_time) BETWEEN ? AND ?");
+            parameterIndex++;
+        }
+        if (!description.isEmpty()){
+            query.append(" AND description LIKE ?");
+            parameterIndex++;
+        }
+        if (!vendor.isEmpty()){
+            query.append(" AND vendor LIKE ?");
+            parameterIndex++;
+        }
+        if (!amount.isEmpty()){
+            query.append(" AND amount = ?");
+            parameterIndex++;
+        }
+
+        try(Connection connection = dataSource.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(query.toString())){
+
+            int paramIndex = 1;
+
+            if ((!startDate.isEmpty()) && (!endDate.isEmpty())){
+                preparedStatement.setDate(paramIndex++, java.sql.Date.valueOf(startDate));
+                preparedStatement.setDate(paramIndex++, java.sql.Date.valueOf(endDate));
+            }
+            if (!description.isEmpty()){
+                preparedStatement.setString(paramIndex++, "%" + description + "%");
+            }
+            if (!vendor.isEmpty()){
+                preparedStatement.setString(paramIndex++, "%" + vendor + "%");
+            }
+            if (!amount.isEmpty()){
+                preparedStatement.setDouble(paramIndex++, Double.parseDouble(amount));
+            }
+
+            try(ResultSet resultSet = preparedStatement.executeQuery()){
+                while (resultSet.next()){
+                    Transaction transaction = mapRow(resultSet);
+                    transactions.add(transaction);
+                }
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return transactions;
+    }
+
     private Transaction mapRow(ResultSet row) throws SQLException {
         int id = row.getInt(1);
         String timestamp = String.valueOf(row.getTimestamp(2));

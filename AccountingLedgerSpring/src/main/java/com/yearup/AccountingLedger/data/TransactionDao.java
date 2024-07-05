@@ -14,6 +14,5 @@ public interface TransactionDao {
     public List<Transaction> getYearToDate();
     public List<Transaction> getLastYear();
     public List<Transaction> searchByVendor(String vendorName);
-    //public List<Transaction> searchWithBonus();
-
+    public List<Transaction> customSearch(String startDate, String endDate, String description, String vendor, String amount);
 }
