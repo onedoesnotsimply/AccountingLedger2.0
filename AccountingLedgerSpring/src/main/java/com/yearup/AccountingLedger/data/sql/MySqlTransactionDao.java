@@ -133,7 +133,23 @@ public class MySqlTransactionDao implements TransactionDao {
 
     @Override
     public List<Transaction> getLastMonth() {
-        return List.of();
+        List<Transaction> transactions = new ArrayList<>();
+        String query = "SELECT * FROM transactions WHERE MONTH(date_time) = MONTH(CURRENT_DATE)-1";
+
+        try(Connection connection = dataSource.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            ResultSet resultSet = preparedStatement.executeQuery()) {
+
+            while (resultSet.next()){
+                Transaction transaction = mapRow(resultSet);
+                transactions.add(transaction);
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return transactions;
     }
 
     @Override
@@ -159,12 +175,47 @@ public class MySqlTransactionDao implements TransactionDao {
 
     @Override
     public List<Transaction> getLastYear() {
-        return List.of();
+        List<Transaction> transactions = new ArrayList<>();
+        String query = "SELECT * FROM transactions WHERE YEAR(date_time) = YEAR(CURRENT_DATE)-1";
+
+        try(Connection connection = dataSource.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            ResultSet resultSet = preparedStatement.executeQuery()) {
+
+            while (resultSet.next()){
+                Transaction transaction = mapRow(resultSet);
+                transactions.add(transaction);
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return transactions;
     }
 
     @Override
     public List<Transaction> searchByVendor(String vendorName) {
-        return List.of();
+        List<Transaction> transactions = new ArrayList<>();
+        String query = "SELECT * FROM transactions WHERE vendor LIKE ?";
+
+        try(Connection connection = dataSource.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(query);){
+
+            preparedStatement.setString(1, vendorName);
+
+            try(ResultSet resultSet = preparedStatement.executeQuery()){
+                while (resultSet.next()){
+                    Transaction transaction = mapRow(resultSet);
+                    transactions.add(transaction);
+                }
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return transactions;
     }
 
     private Transaction mapRow(ResultSet row) throws SQLException {
