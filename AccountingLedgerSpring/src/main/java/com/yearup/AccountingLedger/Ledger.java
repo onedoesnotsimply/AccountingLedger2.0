@@ -1,24 +1,33 @@
 package com.yearup.AccountingLedger;
 
 import com.yearup.AccountingLedger.data.TransactionDao;
+import com.yearup.AccountingLedger.display.UserInterface;
+import com.yearup.AccountingLedger.model.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Scanner;
 
 @Component
 public class Ledger implements CommandLineRunner {
-    @Autowired
     private TransactionDao transactionDao;
 
-
+    @Autowired
+    public Ledger(TransactionDao transactionDao) {
+        this.transactionDao = transactionDao;
+    }
 
     // Create a scanner object for user input
     static Scanner scanner = new Scanner(System.in);
@@ -31,39 +40,39 @@ public class Ledger implements CommandLineRunner {
     // Create a static ArrayList for sorting
     static ArrayList<String> entries = new ArrayList<>();
 
+
     @Override
     public void run(String... args) throws Exception {
         System.out.println("Welcome to Ledger");
-        //homeScreen();
-        System.out.println(transactionDao.getAllEntries());
+        homeScreen();
+        //System.out.println(transactionDao.getAllEntries());
     }
 
+    /*
     public static void main(String[] args) {
         System.out.println("Welcome to Ledger");
         homeScreen();
     }
+    */
 
-    public static void homeScreen() {
+    public void homeScreen() {
         // Display the home screen
-        System.out.println("1) Add Deposit");
-        System.out.println("2) Make Payment");
-        System.out.println("3) Ledger");
-        System.out.println("4) Exit");
+        System.out.println("1) Add Transaction");
+        System.out.println("2) Ledger");
+        System.out.println("3) Exit");
 
         try {
             int choice = scanner.nextInt(); // Get user input
             scanner.nextLine(); // Consume the newline
 
             if (choice == 1) {
-                writeToCSV(addDeposit());
+                //writeToCSV(addDeposit());
+                addTransaction();
                 homeScreen();
-            } else if (choice == 2) {
-                writeToCSV(addPayment());
-                homeScreen();
-            } else if (choice==3) {
+            } else if (choice==2) {
                 System.out.println("Which Ledger would you like to see?");
                 ledgerScreen();
-            } else if (choice==4) {
+            } else if (choice==3) {
                 scanner.close();
                 System.exit(0);
             } else {
@@ -77,7 +86,7 @@ public class Ledger implements CommandLineRunner {
         }
     }
 
-    public static void ledgerScreen() {
+    public void ledgerScreen() {
         System.out.println("1) All Entries");
         System.out.println("2) Deposits");
         System.out.println("3) Payments");
@@ -90,15 +99,15 @@ public class Ledger implements CommandLineRunner {
 
             if (choice == 1) {
                 System.out.println("All entries");
-                allEntries();
+                getAllEntries();
                 ledgerScreen();
             } else if (choice == 2) {
                 System.out.println("All deposits");
-                viewDeposits();
+                getAllDeposits();
                 ledgerScreen();
             } else if (choice == 3) {
                 System.out.println("All payments");
-                viewPayments();
+                getAllPayments();
                 ledgerScreen();
             } else if (choice == 4) {
                 System.out.println("Which report would you like to view?");
@@ -116,7 +125,7 @@ public class Ledger implements CommandLineRunner {
         }
     }
 
-    public static void viewReports() {
+    public void viewReports() {
         System.out.println("1) Month To Date");
         System.out.println("2) Previous Month");
         System.out.println("3) Year To Date");
@@ -130,22 +139,22 @@ public class Ledger implements CommandLineRunner {
 
             if (choice==1) {
                 System.out.println("All entries from this month");
-                monthToDate();
+                getLastMonth();
                 viewReports();
             } else if (choice==2) {
                 System.out.println("All entries from last month");
-                previousMonth();
+                //previousMonth();
                 viewReports();
             } else if (choice==3) {
                 System.out.println("All entries from this year");
-                yearToDate();
+                getLastYear();
                 viewReports();
             } else if (choice==4) {
                 System.out.println("All entries from last year");
-                previousYear();
+                //previousYear();
                 viewReports();
             } else if (choice==5) {
-                searchByVendor();
+                //searchByVendor();
                 viewReports();
             } else if (choice==6) {
                 ledgerScreen();
@@ -160,149 +169,51 @@ public class Ledger implements CommandLineRunner {
         }
     }
 
-    // Prompts for and creates a payment string
-    public static String addPayment() {
-        // Prompt for payment information
-        System.out.println("Please enter the payment information");
-        System.out.print("Describe the purchased item : ");
-        String item = scanner.nextLine();
-        System.out.print("Name of vendor : ");
-        String vendor = scanner.nextLine();
-        System.out.print("Enter the cost of the item as a negative number : ");
-        double cost = scanner.nextDouble();
-        if (cost > 0) {
-            System.out.println("Invalid input\nAmount must be negative");
-            homeScreen();
-        }
-        scanner.nextLine(); // Consume to newline
-        // Return string
-        return (item+"|"+vendor+"|"+cost);
-    }
+    public void addTransaction() {
+        // Initialize the transaction object
+        Transaction transaction;
 
-    // Prompts for and creates a deposit string
-    public static String addDeposit() {
-        // Prompt for deposit information
-        System.out.println("Please enter the deposit information");
-        System.out.print("Describe the deposit : ");
+        // Prompt for data
+        System.out.println("Enter a description of the transaction");
         String description = scanner.nextLine();
-        System.out.print("Who is the vendor : ");
+        System.out.println("Enter the name of the vendor");
         String vendor = scanner.nextLine();
-        System.out.print("Deposit amount : ");
+        System.out.println("Enter the amount");
         double amount = scanner.nextDouble();
-        if (amount < 0) {
-            System.out.println("Invalid input\nAmount must be greater than zero");
-            homeScreen();
-        }
-        scanner.nextLine();
-        // Return the string
-        return (description+"|"+vendor+"|"+amount);
+
+        // Create the transaction
+        transaction = new Transaction(description, vendor, amount);
+        /* Write the transaction to the database */
+        transactionDao.addTransaction(transaction);
     }
 
-    // Writes to the ledger.csv file
-    public static void writeToCSV(String action) {
-            // Get the local date and time
-            LocalDate date = LocalDate.now();
-            LocalTime time = LocalTime.now();
-
-            String entry = (date+"|"+time.format(DateTimeFormatter.ofPattern("HH:mm:ss"))+"|"+action+"\n");
-
-        try {
-            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("ledger.csv", true));
-            // Write the date, time and action to the ledger.csv file
-            bufferedWriter.write(entry);
-            System.out.println("Entry recorded");
-
-            bufferedWriter.close();
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
+    public void getAllEntries() {
+        List<Transaction> transactions = transactionDao.getAllEntries();
+        transactions.forEach(System.out::println);
     }
 
-    // Displays all entries recorded in the ledger
-    public static void allEntries() {
-        // Prints all entries to the terminal
-        String input;
-        try {
-            BufferedReader bufferedReader = new BufferedReader(new FileReader("ledger.csv"));
-            while ((input = bufferedReader.readLine()) != null) {
-                // Add entry to entries ArrayList
-                entries.add(input);
-            }
-            sortArray(entries);
-            // Close bufferedReader
-            bufferedReader.close();
-        }
-        catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
+    public void getAllDeposits() {
+        List<Transaction> transactions = transactionDao.getAllDeposits();
+        transactions.forEach(System.out::println);
     }
 
-    // Displays all deposits recorded in the ledger
-    public static void viewDeposits() {
-        // Shows all deposits recorded in the ledger
-        String input;
-        try {
-            BufferedReader bufferedReader = new BufferedReader(new FileReader("ledger.csv"));
-            while ((input = bufferedReader.readLine()) != null) {
-                String[] tokens = input.split("\\|");
-                if (Double.parseDouble(tokens[4]) > 0) {
-                    // Add entry to the arraylist
-                    entries.add(input);
-                }
-            }
-            // Sort the array list
-            sortArray(entries);
-
-            bufferedReader.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public void getAllPayments() {
+        List<Transaction> transactions = transactionDao.getAllPayments();
+        transactions.forEach(System.out::println);
     }
 
-    // Displays all payments recorded in the ledger
-    public static void viewPayments() {
-
-        String input;
-        try {
-            BufferedReader bufferedReader = new BufferedReader(new FileReader("ledger.csv"));
-            while ((input = bufferedReader.readLine()) != null) {
-                String[] tokens = input.split("\\|");
-                if (Double.parseDouble(tokens[4]) < 0){
-                    // Add to entries
-                    entries.add(input);
-                }
-            }
-            // Sort and print the entries
-            sortArray(entries);
-            // Close the reader
-            bufferedReader.close();
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public void getLastMonth() {
+        List<Transaction> transactions = transactionDao.getLastMonth();
+        transactions.forEach(System.out::println);
     }
 
-    // Displays all entries from the current month
-    public static void monthToDate() {
-        String input;
-
-        try {
-            BufferedReader bufferedReader = new BufferedReader(new FileReader("ledger.csv"));
-            while ((input = bufferedReader.readLine()) != null) {
-                String[] tokens = input.split("\\|");
-                String[] date = tokens[0].split("-");
-                if (Double.parseDouble(date[1]) == currentMonth && Double.parseDouble(date[0]) == currentYear) {
-                    entries.add(input);
-                }
-            }
-            sortArray(entries);
-            bufferedReader.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public void getLastYear() {
+        List<Transaction> transactions = transactionDao.getLastYear();
+        transactions.forEach(System.out::println);
     }
 
+
+    // TODO
     // Sorts, prints and clears the ArrayList
     public static void sortArray(ArrayList<String> items){
         Collections.reverse(items);
@@ -331,26 +242,6 @@ public class Ledger implements CommandLineRunner {
             throw new RuntimeException(e);
         }
 
-    }
-
-    // Display all entries from the current year
-    public static void yearToDate() {
-        String input;
-
-        try {
-            BufferedReader bufferedReader = new BufferedReader(new FileReader("ledger.csv"));
-            while ((input = bufferedReader.readLine()) != null) {
-                String[] tokens = input.split("\\|");
-                String[] date = tokens[0].split("-");
-                if (Integer.parseInt(date[0]) == currentYear) {
-                    entries.add(input);
-                }
-            }
-            sortArray(entries);
-            bufferedReader.close();
-        } catch (IOException e){
-            throw new RuntimeException(e);
-        }
     }
 
     // Display all entries from the previous year
