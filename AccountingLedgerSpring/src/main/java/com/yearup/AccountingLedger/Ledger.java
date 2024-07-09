@@ -207,18 +207,22 @@ public class Ledger implements CommandLineRunner {
     }
 
     public void customSearch() {
-        //List<String> searchParameters = new ArrayList<>();
         System.out.println("Search parameters are optional - leave empty if not applicable");
-        System.out.print("Enter start date (yyyy-mm-DD) : ");
-        String startDate = scanner.nextLine();
-        System.out.print("Enter end date (yyyy-mm-DD) : ");
-        String endDate = scanner.nextLine();
+        System.out.print("Enter start and end date (yyyy-mm-DD/yyyy-mm-DD) : ");
+        String date = scanner.nextLine();
         System.out.print("Enter transaction description : ");
         String description = scanner.nextLine();
         System.out.print("Enter the name of the vendor : ");
         String vendor = scanner.nextLine();
         System.out.print("Enter the amount : ");
         String amount = scanner.nextLine();
+
+        String startDate="", endDate="";
+
+        if (!date.isEmpty()){
+            startDate = date.split("/")[0];
+            endDate = date.split("/")[1];
+        }
 
         List<Transaction> transactions = transactionDao.customSearch(startDate,endDate,description,vendor,amount);
         transactions.forEach(System.out::println);
