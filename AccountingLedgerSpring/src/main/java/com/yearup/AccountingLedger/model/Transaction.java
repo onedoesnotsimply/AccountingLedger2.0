@@ -25,13 +25,13 @@ public class Transaction {
 
     @Override
     public String toString() {
-        return "Transaction{" +
-                "id=" + id +
-                ", timestamp='" + timestamp + '\'' +
-                ", description='" + description + '\'' +
-                ", vendor='" + vendor + '\'' +
-                ", amount=" + amount +
-                '}';
+        return  """
+                \tID           |\t\t%d
+                \tDate         |\t\t%s
+                \tDescription  |\t\t%s
+                \tVendor       |\t\t%s
+                \tAmount       |\t\t%.2f
+                *==========================================================*""".formatted(id,timestamp,description,vendor,amount);
     }
 
     // Getters and setters
