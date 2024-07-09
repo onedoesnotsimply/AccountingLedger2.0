@@ -70,15 +70,15 @@ public class Ledger implements CommandLineRunner {
             scanner.nextLine();
 
             if (choice == 1) {
-                System.out.println("All entries");
+                System.out.println("All entries\n------------------------------------------------------------");
                 getAllEntries();
                 ledgerScreen();
             } else if (choice == 2) {
-                System.out.println("All deposits");
+                System.out.println("All deposits\n------------------------------------------------------------");
                 getAllDeposits();
                 ledgerScreen();
             } else if (choice == 3) {
-                System.out.println("All payments");
+                System.out.println("All payments\n------------------------------------------------------------");
                 getAllPayments();
                 ledgerScreen();
             } else if (choice == 4) {
@@ -112,19 +112,19 @@ public class Ledger implements CommandLineRunner {
             scanner.nextLine();
 
             if (choice==1) {
-                System.out.println("All entries from this month");
+                System.out.println("All entries from this month\n------------------------------------------------------------");
                 getMonthToDate();
                 viewReports();
             } else if (choice==2) {
-                System.out.println("All entries from last month");
+                System.out.println("All entries from last month\n------------------------------------------------------------");
                 getLastMonth();
                 viewReports();
             } else if (choice==3) {
-                System.out.println("All entries from this year");
+                System.out.println("All entries from this year\n------------------------------------------------------------");
                 getYearToDate();
                 viewReports();
             } else if (choice==4) {
-                System.out.println("All entries from last year");
+                System.out.println("All entries from last year\n------------------------------------------------------------");
                 getLastYear();
                 viewReports();
             } else if (choice==5) {
