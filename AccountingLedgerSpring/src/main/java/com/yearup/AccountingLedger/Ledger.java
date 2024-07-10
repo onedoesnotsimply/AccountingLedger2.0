@@ -48,11 +48,11 @@ public class Ledger implements CommandLineRunner {
                 scanner.close();
                 System.exit(0);
             } else {
-                System.out.println("Invalid Input");
+                System.out.println("Invalid Input : input out of range");
                 homeScreen();
             }
         } catch (Exception e){
-            System.out.println("Invalid Input");
+            System.out.println("Invalid Input : please enter a number");
             scanner.nextLine();
             homeScreen();
         }
@@ -87,11 +87,11 @@ public class Ledger implements CommandLineRunner {
             } else if (choice == 5) {
                 homeScreen();
             } else {
-                System.out.println("Invalid Input");
+                System.out.println("Invalid Input : input out of range");
                 ledgerScreen();
             }
         } catch (Exception e){
-            System.out.println("Invalid Input");
+            System.out.println("Invalid Input : please enter a number");
             scanner.nextLine();
             ledgerScreen();
         }
@@ -136,11 +136,11 @@ public class Ledger implements CommandLineRunner {
             } else if (choice==7) {
                 ledgerScreen();
             } else {
-                System.out.println("Invalid Input");
+                System.out.println("Invalid Input : input out of range");
                 viewReports();
             }
         } catch (Exception e){
-            System.out.println("Invalid Input");
+            System.out.println("Invalid Input : please input a number");
             scanner.nextLine();
             viewReports();
         }
@@ -220,8 +220,13 @@ public class Ledger implements CommandLineRunner {
         String startDate="", endDate="";
 
         if (!date.isEmpty()){
-            startDate = date.split("/")[0];
-            endDate = date.split("/")[1];
+            try{
+                startDate = date.split("/")[0];
+                endDate = date.split("/")[1];
+            } catch (Exception e){
+                System.out.println("Invalid input : please enter a start/end date or leave field empty");
+            }
+
         }
 
         List<Transaction> transactions = transactionDao.customSearch(startDate,endDate,description,vendor,amount);
